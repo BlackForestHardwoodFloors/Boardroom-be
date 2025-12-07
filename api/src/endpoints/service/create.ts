@@ -1,0 +1,49 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { z } from "zod";
+import { initialize } from "../../../../database/src/data-source";
+import { requestHandler } from "../../utils/helper.utils";
+import { upsertService } from "../../../../database/src/operations/service/upsertService";
+import { Service, ServiceStatus } from "../../../../database/src/entities/Service";
+
+/* eslint-disable camelcase */
+const BODY_SCHEMA = z.object({
+  name: z.string(),
+  description: z.string(),
+  categoryId: z.number(),
+  status: z.string(),
+  createdBy: z.string(),
+});
+
+export const handler = requestHandler(async (event) => {
+  await initialize();
+  const validateRequestBody = BODY_SCHEMA.safeParse(
+    JSON.parse(event.body as string),
+  );
+  if (!validateRequestBody.success) {
+    return {
+      statusCode: 400,
+      body: { error: validateRequestBody.error },
+    };
+  }
+  const requestBody = validateRequestBody.data;
+  try {
+    const service = new Service();
+    service.name = requestBody.name;
+    service.description = requestBody.description;
+    service.categoryId = requestBody.categoryId;
+    service.status = requestBody.status as ServiceStatus;
+    service.createdBy = parseInt(requestBody.createdBy);
+    await upsertService(service);
+    return {
+      statusCode: 200,
+      body: "Service created successfully",
+    };
+  } catch (error: any) {
+    console.log("Error while creating Service: ", error);
+    return {
+      statusCode: 404,
+      body: error.message,
+    };
+  }
+});
+

@@ -1,0 +1,39 @@
+{
+  "name": "@olio/database",
+  "version": "0.0.1",
+  "description": "Database for Olio, using TypeORM",
+  "scripts": {
+    "typeorm": "typeorm-ts-node-commonjs",
+    "test": "mocha --timeout 10000 test/**/**.test.ts",
+    "test:report": "nyc  --reporter html yarn test",
+    "resetdb": "docker rm comps_db",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
+    "migration:create": "typeorm-ts-node-commonjs migration:create ./src/migration/$0",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate ./src/migration/$0 -d src/data-source.ts",
+    "migration:fake": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts --fake"
+  },
+  "nyc": {
+    "exclude": "src/migration/**.ts"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^18.19.24",
+    "chai": "^4.3.7",
+    "mocha": "^10.3.0",
+    "nyc": "15.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "mysql2": "^3.11.5",
+    "pg": "^8.11.0",
+    "reflect-metadata": "^0.2.0",
+    "typeorm": "0.3.20",
+    "typeorm-naming-strategies": "^4.1.0",
+    "zod": "^3.21.4"
+  },
+  "license": "UNLICENSED"
+}

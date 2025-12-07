@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ESNEXT"
+  }
+}

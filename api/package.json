@@ -1,0 +1,44 @@
+{
+  "name": "@olio/api",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "serverless offline --noPrependStageInUrl --reloadHandler",
+    "test:unit": "mocha --timeout 10000 'test/unit/**/**.test.ts' --exit",
+    "test:integration": "mocha --timeout 30000 'test/integration/**/**.test.ts' --exit",
+    "test": "mocha --timeout 20000 'test/**/**/**.test.ts' --exit",
+    "test:report": "nyc --reporter html yarn test"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.556.0",
+    "@aws-sdk/s3-request-presigner": "^3.556.0",
+    "axios": "^1.6.7",
+    "dayjs": "^1.11.9",
+    "json5": "2.2.3",
+    "mysql2": "^3.11.5",
+    "serverless-domain-manager": "7.3.6",
+    "typeorm": "^0.3.20",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.131",
+    "@types/chai-as-promised": "^7.1.8",
+    "@types/serverless": "^3.12.21",
+    "@types/sinon": "^17.0.2",
+    "chai": "^4.3.7",
+    "chai-as-promised": "^7.1.1",
+    "esbuild": "^0.20.0",
+    "esbuild-plugin-tsc": "^0.4.0",
+    "mocha": "^10.3.0",
+    "nyc": "15.1.0",
+    "serverless": "^3.39.0",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-esbuild": "^1.51.0",
+    "serverless-offline": "^13.3.3",
+    "serverless-plugin-resource-tagging": "^1.2.0",
+    "serverless-prune-plugin": "2.0.2",
+    "sinon": "^17.0.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.2",
+    "wait-on": "^7.2.0"
+  }
+}
