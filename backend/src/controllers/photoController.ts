@@ -411,6 +411,23 @@ export const updatePhotoWithAnnotation: RequestHandler = async (req: Request, re
       return res.status(404).json({ error: 'Photo not found.' });
     }
 
+    // Check if this photo is already an annotated version - if so, find the TRUE original
+    let trueOriginalId = originalPhoto.id;
+    let currentPhoto = originalPhoto;
+    
+    // Trace back to find the TRUE original (for storing the reference)
+    while (currentPhoto) {
+      const parentMatch = currentPhoto.notes?.match(/\[originalId:(\d+)\]/);
+      if (parentMatch) {
+        trueOriginalId = parseInt(parentMatch[1]);
+        currentPhoto = await Photo.findByPk(trueOriginalId);
+      } else {
+        // This is the true original
+        trueOriginalId = currentPhoto.id;
+        break;
+      }
+    }
+
     let buffer: Buffer;
     let contentType = 'image/png';
 
@@ -568,12 +585,12 @@ export const updatePhotoWithAnnotation: RequestHandler = async (req: Request, re
 
     const newFileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
 
-    // Hide the original photo (set visibility to 'hidden')
+    // Hide the current photo (set visibility to 'hidden')
     await originalPhoto.update({ 
       visibility: 'hidden'
     });
 
-    // Create NEW photo record with link to original
+    // Create NEW photo record with link to TRUE original (not the intermediate annotated version)
     const annotatedPhoto = await Photo.create({
       jobId: originalPhoto.jobId,
       employeeId: originalPhoto.employeeId,
@@ -583,9 +600,9 @@ export const updatePhotoWithAnnotation: RequestHandler = async (req: Request, re
       timestampUploaded: new Date(),
       gpsLat: originalPhoto.gpsLat,
       gpsLng: originalPhoto.gpsLng,
-      tags: [...(originalPhoto.tags || []), 'Annotated'],
-      // Store original photo ID in notes for recovery (format: [originalId:123])
-      notes: `[originalId:${originalPhoto.id}]${originalPhoto.notes ? ' ' + originalPhoto.notes : ''}`,
+      tags: [...(originalPhoto.tags || []).filter((t: string) => t !== 'Annotated'), 'Annotated'],
+      // Store TRUE original photo ID in notes for recovery (format: [originalId:123])
+      notes: `[originalId:${trueOriginalId}]${originalPhoto.notes ? ' ' + originalPhoto.notes.replace(/\[originalId:\d+\]\s*/, '') : ''}`,
       visibility: originalPhoto.visibility === 'hidden' ? 'internal' : originalPhoto.visibility,
       selectedForClientPortal: originalPhoto.selectedForClientPortal,
       selectedForReviewSuggestions: originalPhoto.selectedForReviewSuggestions,
@@ -597,7 +614,7 @@ export const updatePhotoWithAnnotation: RequestHandler = async (req: Request, re
     return res.status(201).json({ 
       success: true, 
       photo: annotatedPhoto,
-      originalPhotoId: originalPhoto.id,
+      originalPhotoId: trueOriginalId,
       message: 'Annotated photo created. Original photo is hidden but preserved.' 
     });
 
@@ -607,7 +624,7 @@ export const updatePhotoWithAnnotation: RequestHandler = async (req: Request, re
   }
 };
 
-// Restore original photo (unhide original, delete annotated version)
+// Restore original photo (unhide TRUE original, delete ALL annotated versions in chain)
 export const restoreOriginalPhoto: RequestHandler = async (req: Request, res: Response): Promise<any> => {
   try {
     const { photoId } = req.params;
@@ -625,25 +642,54 @@ export const restoreOriginalPhoto: RequestHandler = async (req: Request, res: Re
       return res.status(400).json({ error: 'This photo does not have an original version to restore.' });
     }
 
-    const originalPhotoId = parseInt(match[1]);
-    const originalPhoto: any = await Photo.findByPk(originalPhotoId);
+    // Trace back to find the TRUE original (the one with no [originalId:X] in notes)
+    let currentPhotoId = parseInt(match[1]);
+    let trueOriginalPhoto: any = null;
+    const annotatedPhotosToDelete: number[] = [parseInt(photoId)]; // Start with the current annotated photo
 
-    if (!originalPhoto) {
-      return res.status(404).json({ error: 'Original photo not found.' });
+    while (currentPhotoId) {
+      const photo: any = await Photo.findByPk(currentPhotoId);
+      
+      if (!photo) {
+        return res.status(404).json({ error: `Photo in chain (ID: ${currentPhotoId}) not found.` });
+      }
+
+      // Check if this photo has an originalId (meaning it's also an annotated version)
+      const parentMatch = photo.notes?.match(/\[originalId:(\d+)\]/);
+      
+      if (parentMatch) {
+        // This is also an annotated photo, add to delete list and keep tracing
+        annotatedPhotosToDelete.push(currentPhotoId);
+        currentPhotoId = parseInt(parentMatch[1]);
+      } else {
+        // This is the TRUE original (no [originalId:X] in notes)
+        trueOriginalPhoto = photo;
+        break;
+      }
     }
 
-    // Restore original photo visibility
-    await originalPhoto.update({ 
-      visibility: 'internal' // or whatever the default should be
+    if (!trueOriginalPhoto) {
+      return res.status(404).json({ error: 'Could not find the original photo.' });
+    }
+
+    // Restore true original photo visibility
+    await trueOriginalPhoto.update({ 
+      visibility: 'internal'
     });
 
-    // Soft delete the annotated photo
-    await annotatedPhoto.update({ delete: 'Yes' });
+    // Soft delete ALL annotated photos in the chain
+    for (const annotatedId of annotatedPhotosToDelete) {
+      await Photo.update(
+        { delete: 'Yes' },
+        { where: { id: annotatedId } }
+      );
+    }
 
     return res.status(200).json({ 
       success: true, 
-      restoredPhoto: originalPhoto,
-      message: 'Original photo restored successfully.' 
+      restoredPhoto: trueOriginalPhoto,
+      deletedAnnotatedPhotos: annotatedPhotosToDelete,
+      message: 'Original photo restored successfully. All annotated versions have been removed.' 
     });
 
   } catch (error: any) {
@@ -652,7 +698,7 @@ export const restoreOriginalPhoto: RequestHandler = async (req: Request, res: Re
   }
 };
 
-// Get original photo for an annotated photo
+// Get original photo for an annotated photo (returns TRUE original)
 export const getOriginalPhoto: RequestHandler = async (req: Request, res: Response): Promise<any> => {
   try {
     const { photoId } = req.params;
@@ -670,16 +716,37 @@ export const getOriginalPhoto: RequestHandler = async (req: Request, res: Respon
       return res.status(400).json({ error: 'This photo does not have an original version.' });
     }
 
-    const originalPhotoId = parseInt(match[1]);
-    const originalPhoto: any = await Photo.findByPk(originalPhotoId);
+    // Trace back to find the TRUE original (the one with no [originalId:X] in notes)
+    let currentPhotoId = parseInt(match[1]);
+    let trueOriginalPhoto: any = null;
 
-    if (!originalPhoto) {
-      return res.status(404).json({ error: 'Original photo not found.' });
+    while (currentPhotoId) {
+      const photo: any = await Photo.findByPk(currentPhotoId);
+      
+      if (!photo) {
+        return res.status(404).json({ error: `Photo in chain (ID: ${currentPhotoId}) not found.` });
+      }
+
+      // Check if this photo has an originalId (meaning it's also an annotated version)
+      const parentMatch = photo.notes?.match(/\[originalId:(\d+)\]/);
+      
+      if (parentMatch) {
+        // Keep tracing back
+        currentPhotoId = parseInt(parentMatch[1]);
+      } else {
+        // This is the TRUE original (no [originalId:X] in notes)
+        trueOriginalPhoto = photo;
+        break;
+      }
+    }
+
+    if (!trueOriginalPhoto) {
+      return res.status(404).json({ error: 'Could not find the original photo.' });
     }
 
     return res.status(200).json({ 
       success: true, 
-      originalPhoto,
+      originalPhoto: trueOriginalPhoto,
       message: 'Original photo found.' 
     });
 
