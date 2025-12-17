@@ -47,6 +47,8 @@ import "./src/models/ContractorCompany";
 import "./src/models/ContractorLocations";
 import "./src/models/ContractorEmployee";
 import "./src/models/Photo";
+import "./src/models/ContactPhone";
+import "./src/models/ContactEmail";
 
 // Import routes
 import userRoutes from './src/routes/userRoutes';
@@ -85,6 +87,9 @@ import contractorLocationRoutes from "./src/routes/contractor/locationRoutes";
 import contractorEmployeeRoutes from "./src/routes/contractor/employeeRoutes";
 import quoteItemRoutes from "./src/routes/quoteItemRoutes"
 import photoRoutes from "./src/routes/photoRoutes";
+import contactPhoneRoutes from "./src/routes/client/contactPhoneRoutes";
+import contactEmailRoutes from "./src/routes/client/contactEmailRoutes";
+
 // Import middleware
 import { authenticateToken } from './src/middleware/authentication';
 import { scheduleTimesheetReminder } from './src/controllers/timeSheet/timesheetReminder';
@@ -131,6 +136,8 @@ app.use("/contractor/location", authenticateToken, contractorLocationRoutes);
 app.use("/contractor/employee", authenticateToken, contractorEmployeeRoutes);
 app.use("/quote-items", authenticateToken, quoteItemRoutes);
 app.use("/photos", authenticateToken, photoRoutes);
+app.use("/contact-phone", authenticateToken, contactPhoneRoutes);
+app.use("/contact-email", authenticateToken, contactEmailRoutes);
 
 app.use("/", authenticateToken, wageRateRoutes);
 app.use("/", authenticateToken, jobsRoutes);
@@ -175,4 +182,3 @@ sequelize.sync({ alter: true }).then(async () => {
 }).catch((error) => {
   console.error('Error syncing the database:', error.message);
 });
-
