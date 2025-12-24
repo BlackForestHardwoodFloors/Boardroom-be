@@ -26,6 +26,7 @@ interface AppointmentRequestBody {
     lastName: string;
     phone: string;
     email: string;
+    foreman: string;
 }
 
 export const createAppointment: RequestHandler = async (req: IGetUserAuthInfoRequest, res: Response): Promise<any> => {
@@ -43,6 +44,8 @@ export const createAppointment: RequestHandler = async (req: IGetUserAuthInfoReq
             firstName,
             lastName,
             employeeName,
+            phone,
+            foreman,
         }: AppointmentRequestBody = req.body;
 
         const requiredFields = ['startDate', 'startTime', 'endDate', 'endTime', 'purpose'];
@@ -76,6 +79,8 @@ export const createAppointment: RequestHandler = async (req: IGetUserAuthInfoReq
             employeeName,
             firstName,
             lastName,
+            phone,
+            foreman,
             createdBy: req.user.firstName + " " + req.user.lastName,
             createdTime: new Date().toISOString(),
             modifiedBy: req.user.firstName + " " + req.user.lastName,
@@ -268,6 +273,8 @@ export const updateAppointment: RequestHandler = async (req: IGetUserAuthInfoReq
             employeeName,
             firstName,
             lastName,
+            phone,
+            foreman,
         }: AppointmentRequestBody = req.body;
 
         const requiredFields = ['startDate', 'startTime', 'endDate', 'endTime', 'purpose'];
@@ -289,6 +296,8 @@ export const updateAppointment: RequestHandler = async (req: IGetUserAuthInfoReq
                 employeeName,
                 firstName,
                 lastName,
+                phone,
+                foreman,
                 modifiedBy: req.user.firstName + " " + req.user.lastName,
                 modifiedTime: new Date().toISOString()
             },

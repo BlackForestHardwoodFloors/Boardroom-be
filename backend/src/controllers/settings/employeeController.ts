@@ -21,6 +21,18 @@ interface EmployeeRequestBody {
     password: string;
 }
 
+export const getEmployees: RequestHandler = async (req: IGetUserAuthInfoRequest, res: Response): Promise<any> => {
+    try {
+        const employees = await Employee.findAll({
+            where: { delete: 'No' },
+            order: [['id', 'ASC']]
+        });
+        return sendResponse(res, 200, employees, "Employees fetched successfully");
+    } catch (error) {
+        console.log("Error while fetching employees", error);
+        return sendResponse(res, 500, null, "An error occurred while fetching employees");
+    }
+}
 
 export const createEmployee: RequestHandler = async (req: IGetUserAuthInfoRequest, res: Response): Promise<any> => {
     try {
