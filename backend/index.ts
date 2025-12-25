@@ -87,6 +87,7 @@ import contractorLocationRoutes from "./src/routes/contractor/locationRoutes";
 import contractorEmployeeRoutes from "./src/routes/contractor/employeeRoutes";
 import quoteItemRoutes from "./src/routes/quoteItemRoutes"
 import photoRoutes from "./src/routes/photoRoutes";
+import messagingRoutes from "./src/routes/messagingRoutes";
 import contactPhoneRoutes from "./src/routes/client/contactPhoneRoutes";
 import contactEmailRoutes from "./src/routes/client/contactEmailRoutes";
 
@@ -145,6 +146,7 @@ app.use("/", authenticateToken, generalTaskRoutes);
 app.use("/", authenticateToken, timeLogsRoutes);
 app.use("/", authenticateToken, workOrderRoutes);
 app.use("/", authenticateToken, smsRoutes);
+app.use("/messaging", authenticateToken, messagingRoutes);
 
 // Root route
 app.get("/", (req: Request, res: Response) => {
