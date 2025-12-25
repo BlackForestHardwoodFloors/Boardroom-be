@@ -12,7 +12,11 @@ const RolePermission = sequelize.define('RolePermission', {
             'Super Admin',
             'Admin',
             'Team Manager',
-            'Team Member'
+            'Team Member',
+            'Technician',
+            'Foreman',
+            'Project Manager',
+            'Sales Rep'
         ),
         allowNull: false,
         field: 'Role',

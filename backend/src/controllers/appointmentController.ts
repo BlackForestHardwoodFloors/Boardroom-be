@@ -44,6 +44,10 @@ export const createAppointment: RequestHandler = async (req: IGetUserAuthInfoReq
             firstName,
             lastName,
             employeeName,
+<<<<<<< HEAD
+=======
+            phone,
+>>>>>>> 32fe44395f4289b7f842c432622857aff6b06594
             foreman,
         }: AppointmentRequestBody = req.body;
 
@@ -78,6 +82,10 @@ export const createAppointment: RequestHandler = async (req: IGetUserAuthInfoReq
             employeeName,
             firstName,
             lastName,
+<<<<<<< HEAD
+=======
+            phone,
+>>>>>>> 32fe44395f4289b7f842c432622857aff6b06594
             foreman,
             createdBy: req.user.firstName + " " + req.user.lastName,
             createdTime: new Date().toISOString(),
@@ -271,6 +279,10 @@ export const updateAppointment: RequestHandler = async (req: IGetUserAuthInfoReq
             employeeName,
             firstName,
             lastName,
+<<<<<<< HEAD
+=======
+            phone,
+>>>>>>> 32fe44395f4289b7f842c432622857aff6b06594
             foreman,
         }: AppointmentRequestBody = req.body;
 
@@ -293,6 +305,10 @@ export const updateAppointment: RequestHandler = async (req: IGetUserAuthInfoReq
                 employeeName,
                 firstName,
                 lastName,
+<<<<<<< HEAD
+=======
+                phone,
+>>>>>>> 32fe44395f4289b7f842c432622857aff6b06594
                 foreman,
                 modifiedBy: req.user.firstName + " " + req.user.lastName,
                 modifiedTime: new Date().toISOString()

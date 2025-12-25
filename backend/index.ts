@@ -49,6 +49,8 @@ import "./src/models/ContractorEmployee";
 import "./src/models/Photo";
 import "./src/models/ContactPhone";
 import "./src/models/ContactEmail";
+import "./src/models/Description";
+import "./src/models/EmployeeLocation";
 
 // Import routes
 import userRoutes from './src/routes/userRoutes';
@@ -90,6 +92,9 @@ import photoRoutes from "./src/routes/photoRoutes";
 import messagingRoutes from "./src/routes/messagingRoutes";
 import contactPhoneRoutes from "./src/routes/client/contactPhoneRoutes";
 import contactEmailRoutes from "./src/routes/client/contactEmailRoutes";
+import descriptionRoutes from './src/routes/descriptionRoutes';
+import communicationsRoutes from './src/routes/communicationsRoutes';
+import employeeLocationRoutes from './src/routes/employeeLocationRoutes';
 
 // Import middleware
 import { authenticateToken } from './src/middleware/authentication';
@@ -139,6 +144,9 @@ app.use("/quote-items", authenticateToken, quoteItemRoutes);
 app.use("/photos", authenticateToken, photoRoutes);
 app.use("/contact-phone", authenticateToken, contactPhoneRoutes);
 app.use("/contact-email", authenticateToken, contactEmailRoutes);
+app.use("/descriptions", authenticateToken, descriptionRoutes);
+app.use("/communications", authenticateToken, communicationsRoutes);
+app.use("/employee", authenticateToken, employeeLocationRoutes);
 
 app.use("/", authenticateToken, wageRateRoutes);
 app.use("/", authenticateToken, jobsRoutes);

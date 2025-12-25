@@ -14,7 +14,9 @@ const Department = sequelize.define('Department', {
       'Operations',
       'Projects',
       'Support',
-      'Accounts'
+      'Accounts',
+      'Admin',
+      'Technician'
     ),
     allowNull: false,
     field: 'Department Name',
